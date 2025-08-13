@@ -70,7 +70,7 @@ def single_address_mode():
     if st.button("Start New Analysis"):
         for key in st.session_state.keys():
             del st.session_state[key]
-    st.experimental_rerun()
+        st.experimental_rerun()
 
     address = st.text_input("Enter Property Address")
     sq_ft = st.number_input("Square Footage", min_value=500, max_value=10000)
