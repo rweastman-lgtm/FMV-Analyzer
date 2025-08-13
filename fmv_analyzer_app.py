@@ -67,9 +67,10 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
 def single_address_mode():
     st.subheader("🔍 Single Address FMV Analysis")
 
-    if st.button("Start New Analysis"):
-        st.session_state.clear()
-        st.experimental_rerun()
+  if st.button("Start New Analysis"):
+    for key in st.session_state.keys():
+        del st.session_state[key]
+    st.experimental_rerun()
 
     address = st.text_input("Enter Property Address")
     sq_ft = st.number_input("Square Footage", min_value=500, max_value=10000)
