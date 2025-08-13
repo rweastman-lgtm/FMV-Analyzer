@@ -68,7 +68,7 @@ def single_address_mode():
     st.subheader("🔍 Single Address FMV Analysis")
 
     if st.button("Start New Analysis"):
-        for key in st.session_state.keys():
+        for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.experimental_rerun()
 
