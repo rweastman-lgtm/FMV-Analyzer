@@ -73,10 +73,9 @@ def single_address_mode():
     st.subheader("🔍 Single Address FMV Analysis")
 
     if st.button("Start New Analysis"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.experimental_rerun()
-
+       st.session_state.clear()
+       st.experimental_rerun()
+   
     address = st.text_input("Enter Property Address")
     sq_ft = st.number_input("Square Footage", min_value=500, max_value=10000)
     build_year = st.selectbox("Build Year", list(range(2015, 2026)))
