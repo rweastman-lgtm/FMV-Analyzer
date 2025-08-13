@@ -28,6 +28,11 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
                   community, cost_level, sold_price=None, sold_year=None,
                   lot_premium=0, builder_profit_pct=15, apply_lot_and_profit=False):
 
+    # 🛡️ Guard clause for missing sold price/year
+    if fmv_method == "Sold Price-Based Estimate":
+        if sold_price is None or sold_year is None:
+            return 0, "⚠️ Missing sold price or year"
+
     cost_per_sq_ft = get_cost_per_sq_ft(community, cost_level)
     base_cost = sq_ft * cost_per_sq_ft
 
@@ -38,7 +43,7 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
     builder_multiplier = {2020: 1.239, 2021: 1.035, 2022: 0.889, 2023: 0.791,
                           2024: 0.721, 2025: 1.00}
 
-    if fmv_method == "Sold Price-Based Estimate" and sold_price and sold_year:
+    if fmv_method == "Sold Price-Based Estimate":
         strip = covid_stripout.get(sold_year, 1.00)
         adjusted_price = sold_price / strip
         fmv = adjusted_price * growth_multiplier.get(sold_year, 1.00)
@@ -54,10 +59,10 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
             base_cost *= builder_multiplier.get(build_year, 1.00)
         else:
             base_cost += lot_premium
-            strip = covid_stripout.get(build_year, 1.00)
-            adjusted_price = base_cost / strip
-            fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
-            return round(fmv, -3), "⚠️" if fmv < 275000 else ""
+
+        strip = covid_stripout.get(build_year, 1.00)
+        adjusted_price = base_cost / strip
+        fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
 
     return round(fmv, -3), "⚠️" if fmv < 275000 else ""
 
