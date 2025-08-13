@@ -26,10 +26,10 @@ def get_cost_per_sq_ft(community, level):
 # -----------------------------
 def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
                   community, cost_level, sold_price=None, sold_year=None,
-                  lot_premium=0, builder_profit_pct=15):
+                  lot_premium=0, builder_profit_pct=15, apply_lot_and_profit=False):
 
     cost_per_sq_ft = get_cost_per_sq_ft(community, cost_level)
-    base_cost = sq_ft * cost_per_sq_ft + lot_premium
+    base_cost = sq_ft * cost_per_sq_ft
 
     covid_stripout = {2020: 1.08, 2021: 1.22, 2022: 1.34, 2023: 1.42, 2024: 1.47, 2025: 1.00}
     growth_multiplier = {2015: 1.7908, 2016: 1.6870, 2017: 1.5927, 2018: 1.5061,
@@ -43,24 +43,34 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
         adjusted_price = sold_price / strip
         fmv = adjusted_price * growth_multiplier.get(sold_year, 1.00)
     else:
-        if build_year in [2024, 2025] and is_builder_origin:
-            markup = 1 + (builder_profit_pct / 100)
-            fmv = base_cost * markup
+        if apply_lot_and_profit:
+            base_cost += lot_premium
+            base_cost *= 1 + (builder_profit_pct / 100)
+        elif build_year in [2024, 2025] and is_builder_origin:
+            base_cost += lot_premium
+            base_cost *= 1 + (builder_profit_pct / 100)
         elif is_builder_origin:
-            fmv = base_cost * builder_multiplier.get(build_year, 1.00)
+            base_cost += lot_premium
+            base_cost *= builder_multiplier.get(build_year, 1.00)
         else:
+            base_cost += lot_premium
             strip = covid_stripout.get(build_year, 1.00)
             adjusted_price = base_cost / strip
             fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
+            return round(fmv, -3), "⚠️" if fmv < 275000 else ""
 
-    risk_flag = "⚠️" if fmv < 275000 else ""
-    return round(fmv, -3), risk_flag
+    return round(fmv, -3), "⚠️" if fmv < 275000 else ""
 
 # -----------------------------
 # Single Address Mode
 # -----------------------------
 def single_address_mode():
     st.subheader("🔍 Single Address FMV Analysis")
+
+    if st.button("Start New Analysis"):
+        st.session_state.clear()
+        st.experimental_rerun()
+
     address = st.text_input("Enter Property Address")
     sq_ft = st.number_input("Square Footage", min_value=500, max_value=10000)
     build_year = st.selectbox("Build Year", list(range(2015, 2026)))
@@ -81,11 +91,14 @@ def single_address_mode():
         lot_premium = st.number_input("Lot Premium ($)", min_value=0, value=0)
         builder_profit_pct = st.number_input("Builder Profit % (2024–2025)", min_value=0.0, value=15.0)
 
+    apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
+
     if st.button("Analyze"):
         if address and sq_ft:
             fmv, risk = calculate_fmv(address, sq_ft, build_year, is_builder_origin,
                                       fmv_method, community, cost_level,
-                                      sold_price, sold_year, lot_premium, builder_profit_pct)
+                                      sold_price, sold_year, lot_premium, builder_profit_pct,
+                                      apply_lot_and_profit)
             st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
         else:
             st.warning("Please enter all required fields.")
@@ -95,10 +108,10 @@ def single_address_mode():
 # -----------------------------
 def batch_upload_mode():
     st.subheader("📂 Batch FMV Analysis via CSV")
-    uploaded_file = st.file_uploader("Upload CSV with columns: Address, SqFt, BuildYear, BuilderOrigin, FMVMethod, SoldPrice, SoldYear, Community, CostLevel, LotPremium, BuilderProfitPct", type=["csv"])
+    uploaded_file = st.file_uploader("Upload CSV with columns: Address, SqFt, BuildYear, BuilderOrigin, FMVMethod, SoldPrice, SoldYear, Community, CostLevel, LotPremium, BuilderProfitPct, ApplyLotAndProfit", type=["csv"])
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
-        required_cols = {"Address", "SqFt", "BuildYear", "BuilderOrigin", "FMVMethod", "SoldPrice", "SoldYear", "Community", "CostLevel", "LotPremium", "BuilderProfitPct"}
+        required_cols = {"Address", "SqFt", "BuildYear", "BuilderOrigin", "FMVMethod", "SoldPrice", "SoldYear", "Community", "CostLevel", "LotPremium", "BuilderProfitPct", "ApplyLotAndProfit"}
         if not required_cols.issubset(df.columns):
             st.error(f"CSV must contain columns: {', '.join(required_cols)}")
             return
@@ -108,7 +121,8 @@ def batch_upload_mode():
             fmv, risk = calculate_fmv(
                 row["Address"], row["SqFt"], row["BuildYear"], row["BuilderOrigin"],
                 row["FMVMethod"], row["Community"], row["CostLevel"],
-                row["SoldPrice"], row["SoldYear"], row["LotPremium"], row["BuilderProfitPct"]
+                row["SoldPrice"], row["SoldYear"], row["LotPremium"], row["BuilderProfitPct"],
+                row["ApplyLotAndProfit"]
             )
             results.append({"Address": row["Address"], "Corrected FMV": fmv, "Risk Flag": risk})
 
