@@ -46,22 +46,22 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
         strip = covid_stripout.get(sold_year, 1.00)
         adjusted_price = sold_price / strip
         fmv = adjusted_price * growth_multiplier.get(sold_year, 1.00)
+
     else:
+        base_cost += lot_premium
+
+        if not apply_lot_and_profit:
+            if build_year in [2024, 2025] and is_builder_origin:
+                base_cost *= 1 + (builder_profit_pct / 100)
+            elif is_builder_origin:
+                base_cost *= builder_multiplier.get(build_year, 1.00)
+
+        strip = covid_stripout.get(build_year, 1.00)
+        adjusted_price = base_cost / strip
+        fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
+
         if apply_lot_and_profit:
-            base_cost += lot_premium
-            base_cost *= 1 + (builder_profit_pct / 100)
-        elif build_year in [2024, 2025] and is_builder_origin:
-            base_cost += lot_premium
-            base_cost *= 1 + (builder_profit_pct / 100)
-        elif is_builder_origin:
-            base_cost += lot_premium
-            base_cost *= builder_multiplier.get(build_year, 1.00)
-        else:
-            base_cost += lot_premium
-            strip = covid_stripout.get(build_year, 1.00)
-            adjusted_price = base_cost / strip
-            fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
-            return round(fmv, -3), "⚠️" if fmv < 275000 else ""
+            fmv *= 1 + (builder_profit_pct / 100)
 
     return round(fmv, -3), "⚠️" if fmv < 275000 else ""
 
@@ -82,11 +82,8 @@ def single_address_mode():
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
 
-    sold_price = None
-    sold_year = None
-    lot_premium = 0
-    builder_profit_pct = 15.0
-    apply_lot_and_profit = False
+    sold_price = sold_year = None
+    lot_premium = builder_profit_pct = 0
 
     if fmv_method == "Sold Price-Based Estimate":
         sold_price = st.number_input("Enter Most Recent Sold Price", min_value=50000)
@@ -94,7 +91,8 @@ def single_address_mode():
     else:
         lot_premium = st.number_input("Lot Premium ($)", min_value=0, value=0)
         builder_profit_pct = st.number_input("Builder Profit % (2024–2025)", min_value=0.0, value=15.0)
-        apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
+
+    apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
     if st.button("Analyze"):
         if address and sq_ft:
