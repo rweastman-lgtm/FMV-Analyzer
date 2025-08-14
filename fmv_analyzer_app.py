@@ -28,7 +28,6 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
                   community, cost_level, sold_price=None, sold_year=None,
                   lot_premium=0, builder_profit_pct=15, apply_lot_and_profit=False):
 
-    # 🛡️ Guard clause for missing sold price/year
     if fmv_method == "Sold Price-Based Estimate":
         if sold_price is None or sold_year is None:
             return 0, "⚠️ Missing sold price or year"
@@ -59,10 +58,10 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
             base_cost *= builder_multiplier.get(build_year, 1.00)
         else:
             base_cost += lot_premium
-
-        strip = covid_stripout.get(build_year, 1.00)
-        adjusted_price = base_cost / strip
-        fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
+            strip = covid_stripout.get(build_year, 1.00)
+            adjusted_price = base_cost / strip
+            fmv = adjusted_price * growth_multiplier.get(build_year, 1.00)
+            return round(fmv, -3), "⚠️" if fmv < 275000 else ""
 
     return round(fmv, -3), "⚠️" if fmv < 275000 else ""
 
@@ -73,9 +72,8 @@ def single_address_mode():
     st.subheader("🔍 Single Address FMV Analysis")
 
     if st.button("Start New Analysis"):
-       st.session_state.clear()
-       # st.experimental_rerun()
-   
+        st.session_state.clear()
+
     address = st.text_input("Enter Property Address")
     sq_ft = st.number_input("Square Footage", min_value=500, max_value=10000)
     build_year = st.selectbox("Build Year", list(range(2015, 2026)))
@@ -88,6 +86,7 @@ def single_address_mode():
     sold_year = None
     lot_premium = 0
     builder_profit_pct = 15.0
+    apply_lot_and_profit = False
 
     if fmv_method == "Sold Price-Based Estimate":
         sold_price = st.number_input("Enter Most Recent Sold Price", min_value=50000)
@@ -95,8 +94,7 @@ def single_address_mode():
     else:
         lot_premium = st.number_input("Lot Premium ($)", min_value=0, value=0)
         builder_profit_pct = st.number_input("Builder Profit % (2024–2025)", min_value=0.0, value=15.0)
-
-    apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
+        apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
     if st.button("Analyze"):
         if address and sq_ft:
