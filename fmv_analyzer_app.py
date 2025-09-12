@@ -35,6 +35,7 @@ def calculate_fmv(address, sq_ft, build_year, is_builder_origin, fmv_method,
     cost_per_sq_ft = get_cost_per_sq_ft(community, cost_level)
     base_cost = sq_ft * cost_per_sq_ft
 
+    #Strips out COVID and adds back normal growth
     covid_stripout = {2020: 1.08, 2021: 1.22, 2022: 1.34, 2023: 1.42, 2024: 1.47, 2025: 1.00}
     growth_multiplier = {2015: 1.7908, 2016: 1.6870, 2017: 1.5927, 2018: 1.5061,
                          2019: 1.4185, 2020: 1.3382, 2021: 1.2625, 2022: 1.1910,
