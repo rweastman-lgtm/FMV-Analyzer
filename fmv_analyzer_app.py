@@ -125,11 +125,7 @@ def single_address_mode():
         builder_profit_pct = st.number_input("Builder Profit % (2024–2025)", min_value=0.0, value=15.0)
 
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
-
-    def extract_zip(address):
-        match = re.search(r"\b\d{5}\b", address)
-        return match.group(0) if match else None
-
+   
 # 🔘 Analyze Button
 if st.button("Analyze"):
     if address and sq_ft:
