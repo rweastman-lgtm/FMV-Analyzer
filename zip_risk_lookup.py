@@ -41,3 +41,4 @@ def zip_to_risk(zip_code):
         "fire_risk_score": fire_score
     }
 
+
