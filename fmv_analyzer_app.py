@@ -3,7 +3,7 @@ import pandas as pd
 import datetime
 import re
 
-from zip_risk_lookup import zip_to_risk
+from zip_risk_lookup import zip_to_risk, scrape_and_cache_risk_data
 
 def extract_zip(address):
     match = re.search(r"\b\d{5}\b", address)
@@ -230,6 +230,9 @@ def main():
     st.set_page_config(page_title="FMV Analyzer", layout="centered")
     st.title("🏠 FMV Analyzer")
     st.markdown("Analyze property values stripped of inflation and builder distortion.")
+
+    # 🔁 Scrape and cache risk data before analysis
+    scrape_and_cache_risk_data()
 
     mode = st.radio("Choose Mode", ["Single Address", "Batch Upload"])
     if mode == "Single Address":
