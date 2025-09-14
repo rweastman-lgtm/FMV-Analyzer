@@ -166,7 +166,67 @@ def single_address_mode():
 # -----------------------------
 def batch_upload_mode():
     st.subheader("📂 Batch FMV Analysis via CSV")
-    uploaded_file = st.file_uploader("Upload CSV with required columns", type=["csv"])
+
+    uploaded_file = st.file_uploader(
+        "Upload CSV with columns: Address, SqFt, BuildYear, BuilderOrigin, FMVMethod, SoldPrice, SoldYear, Community, CostLevel, LotPremium, BuilderProfitPct, ApplyLotAndProfit",
+        type=["csv"]
+    )
+
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
-        required_cols = {"Address", "SqFt", "BuildYear", "BuilderOrigin
+
+        required_cols = {
+            "Address", "SqFt", "BuildYear", "BuilderOrigin", "FMVMethod",
+            "SoldPrice", "SoldYear", "Community", "CostLevel",
+            "LotPremium", "BuilderProfitPct", "ApplyLotAndProfit"
+        }
+
+        if not required_cols.issubset(df.columns):
+            st.error(f"CSV must contain columns: {', '.join(required_cols)}")
+            return
+
+        results = []
+        for _, row in df.iterrows():
+            fmv, risk = calculate_fmv(
+                row["Address"], row["SqFt"], row["BuildYear"], row["BuilderOrigin"],
+                row["FMVMethod"], row["Community"], row["CostLevel"],
+                row["SoldPrice"], row["SoldYear"], row["LotPremium"],
+                row["BuilderProfitPct"], row["ApplyLotAndProfit"]
+            )
+            results.append({
+                "Address": row["Address"],
+                "Corrected FMV": fmv,
+                "Risk Flag": risk
+            })
+
+        result_df = pd.DataFrame(results)
+        st.dataframe(result_df)
+
+        csv = result_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download Results as CSV",
+            data=csv,
+            file_name="fmv_results.csv",
+            mime="text/csv"
+        )
+
+# -----------------------------
+# Main App Layout
+# -----------------------------
+def main():
+    st.set_page_config(page_title="FMV Analyzer", layout="centered")
+    st.title("🏠 FMV Analyzer")
+    st.markdown("Analyze property values stripped of inflation and builder distortion.")
+
+    mode = st.radio("Choose Mode", ["Single Address", "Batch Upload"])
+    if mode == "Single Address":
+        single_address_mode()
+    else:
+        batch_upload_mode()
+
+    st.markdown("---")
+    st.caption(f"Generated on {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+if __name__ == "__main__":
+    main()
+
