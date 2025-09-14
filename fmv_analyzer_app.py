@@ -139,24 +139,19 @@ def single_address_mode():
         return match.group(0) if match else None
 
 # 🔘 Analyze Button
-    if st.button("Analyze"):
-        if address and sq_ft:
-            zip_code = extract_zip(address)
-            fmv, risk = calculate_fmv(
-                address, sq_ft, build_year, is_builder_origin,
-                fmv_method, community, cost_level,
-                sold_price, sold_year, lot_premium,
-                builder_profit_pct, apply_lot_and_profit
-            )
-            st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
+if st.button("Analyze"):
+    if address and sq_ft:
+        zip_code = extract_zip(address)
 
-            insurance = estimate_fema_cost(
-                zip_code=zip_code,
-                home_value=fmv,
-                flood_zone=flood_zone,
-                wind_zone=wind_zone,
-                fire_risk_score=fire_risk_score
-            )
+        # Auto-populate FEMA inputs
+        risk_defaults = zip_to_risk(zip_code)
+        flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"], index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
+        wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"], index=["Zone II", "Zone III", "Zone IV"].index(risk_defaults["wind_zone"]))
+        fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5, value=risk_defaults["fire_risk_score"])
+
+        fmv, risk = calculate_fmv(...)
+        insurance = estimate_fema_cost(zip_code, fmv, flood_zone, wind_zone, fire_risk_score)
+        # ... display results ...
 
             st.markdown("### 🧾 FEMA-Style Insurance Estimate")
             st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
