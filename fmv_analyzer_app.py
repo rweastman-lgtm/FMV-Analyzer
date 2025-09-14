@@ -101,22 +101,18 @@ def extract_zip(address):
     match = re.search(r"\b\d{5}\b", address)
     return match.group(0) if match else None
  
-    if st.button("Analyze"):
-        if address and sq_ft:
-            fmv, risk = calculate_fmv(address, sq_ft, build_year, is_builder_origin,
-                                      fmv_method, community, cost_level,
-                                      sold_price, sold_year, lot_premium, builder_profit_pct,
-                                      apply_lot_and_profit)
-            st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
-        else:
-            st.warning("Please enter all required fields.")
-
-# FEMA Insurance Cost Estimation
 if st.button("Analyze"):
     if address and sq_ft:
         zip_code = extract_zip(address)
-        fmv, risk = calculate_fmv(...)
+        fmv, risk = calculate_fmv(
+            address, sq_ft, build_year, is_builder_origin,
+            fmv_method, community, cost_level,
+            sold_price, sold_year, lot_premium,
+            builder_profit_pct, apply_lot_and_profit
+        )
+        st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
 
+        # FEMA Insurance Cost Estimation
         insurance = estimate_fema_cost(
             zip_code=zip_code,
             home_value=fmv,
@@ -130,6 +126,9 @@ if st.button("Analyze"):
         st.write(f"🌪 Wind Exposure ({insurance['wind']}/yr)")
         st.write(f"🔥 Fire Risk ({insurance['fire']}/yr)")
         st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
+    else:
+        st.warning("Please enter all required fields.")
+
 
 # -----------------------------
 # Batch Upload Mode
