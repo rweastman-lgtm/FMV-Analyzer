@@ -126,13 +126,8 @@ def single_address_mode():
 
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
    
-# 🔘 Analyze Button
 if st.button("Analyze"):
     if address and sq_ft:
-        def extract_zip(address):
-            match = re.search(r"\b\d{5}\b", address)
-            return match.group(0) if match else None
-
         zip_code = extract_zip(address)
         if not zip_code:
             st.warning("ZIP code not found in address.")
