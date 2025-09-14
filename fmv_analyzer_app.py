@@ -231,9 +231,6 @@ def main():
     st.title("🏠 FMV Analyzer")
     st.markdown("Analyze property values stripped of inflation and builder distortion.")
 
-    # 🔁 Scrape and cache risk data before analysis
-    scrape_and_cache_risk_data()
-
     mode = st.radio("Choose Mode", ["Single Address", "Batch Upload"])
     if mode == "Single Address":
         single_address_mode()
