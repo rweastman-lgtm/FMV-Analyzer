@@ -125,50 +125,54 @@ def single_address_mode():
         match = re.search(r"\b\d{5}\b", address)
         return match.group(0) if match else None
 
-    # 🔘 Analyze Button
-    if st.button("Analyze"):
-        if address and sq_ft:
-            zip_code = extract_zip(address)
-            if not zip_code:
-                st.warning("ZIP code not found in address.")
-                return
+# 🔘 Analyze Button
+if st.button("Analyze"):
+    if address and sq_ft:
+        def extract_zip(address):
+            match = re.search(r"\b\d{5}\b", address)
+            return match.group(0) if match else None
 
-            try:
-                risk_defaults = zip_to_risk(zip_code)
-            except Exception as e:
-                st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
-                return
+        zip_code = extract_zip(address)
+        if not zip_code:
+            st.warning("ZIP code not found in address.")
+            return
 
-            flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
-                                      index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
-            wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"],
-                                     index=["Zone II", "Zone III", "Zone IV"].index(risk_defaults["wind_zone"]))
-            fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5,
-                                        value=risk_defaults["fire_risk_score"])
+        try:
+            risk_defaults = zip_to_risk(zip_code)
+        except Exception as e:
+            st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
+            return
 
-            fmv, risk = calculate_fmv(
-                address, sq_ft, build_year, is_builder_origin,
-                fmv_method, community, cost_level,
-                sold_price, sold_year, lot_premium,
-                builder_profit_pct, apply_lot_and_profit
-            )
+        flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
+                                  index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
+        wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"],
+                                 index=["Zone II", "Zone III", "Zone IV"].index(risk_defaults["wind_zone"]))
+        fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5,
+                                    value=risk_defaults["fire_risk_score"])
 
-            insurance = estimate_fema_cost(
-                zip_code=zip_code,
-                home_value=fmv,
-                flood_zone=flood_zone,
-                wind_zone=wind_zone,
-                fire_risk_score=fire_risk_score
-            )
+        fmv, risk = calculate_fmv(
+            address, sq_ft, build_year, is_builder_origin,
+            fmv_method, community, cost_level,
+            sold_price, sold_year, lot_premium,
+            builder_profit_pct, apply_lot_and_profit
+        )
 
-            st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
-            st.markdown("### 🧾 FEMA-Style Insurance Estimate")
-            st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
-            st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
-            st.write(f"🔥 Fire Risk (Score {fire_risk_score}): ${insurance['fire']}/yr")
-            st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
-        else:
-            st.warning("Please enter all required fields.")
+        insurance = estimate_fema_cost(
+            zip_code=zip_code,
+            home_value=fmv,
+            flood_zone=flood_zone,
+            wind_zone=wind_zone,
+            fire_risk_score=fire_risk_score
+        )
+
+        st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
+        st.markdown("### 🧾 FEMA-Style Insurance Estimate")
+        st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
+        st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
+        st.write(f"🔥 Fire Risk (Score {fire_risk_score}): ${insurance['fire']}/yr")
+        st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
+    else:
+        st.warning("Please enter all required fields.")
 
 # -----------------------------
 # Batch Upload Mode
