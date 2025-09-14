@@ -86,6 +86,39 @@ def single_address_mode():
     sold_price = sold_year = None
     lot_premium = builder_profit_pct = 0
 
+# Optional: Add dropdowns for FEMA inputs
+flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"])
+wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"])
+fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5, value=3)
+
+# Analyze button
+if st.button("Analyze"):
+    if address and sq_ft:
+        zip_code = extract_zip(address)
+        fmv, risk = calculate_fmv(
+            address, sq_ft, build_year, is_builder_origin,
+            fmv_method, community, cost_level,
+            sold_price, sold_year, lot_premium,
+            builder_profit_pct, apply_lot_and_profit
+        )
+        st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
+
+        insurance = estimate_fema_cost(
+            zip_code=zip_code,
+            home_value=fmv,
+            flood_zone=flood_zone,
+            wind_zone=wind_zone,
+            fire_risk_score=fire_risk_score
+        )
+
+        st.markdown("### 🧾 FEMA-Style Insurance Estimate")
+        st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
+        st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
+        st.write(f"🔥 Fire Risk (Score {fire_risk_score}): ${insurance['fire']}/yr")
+        st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
+    else:
+        st.warning("Please enter all required fields.")
+    
     if fmv_method == "Sold Price-Based Estimate":
         sold_price = st.number_input("Enter Most Recent Sold Price", min_value=50000)
         sold_year = st.selectbox("Sold Year", list(range(2015, 2026)))
@@ -111,23 +144,6 @@ if st.button("Analyze"):
             builder_profit_pct, apply_lot_and_profit
         )
         st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
-
-        # FEMA Insurance Cost Estimation
-        insurance = estimate_fema_cost(
-            zip_code=zip_code,
-            home_value=fmv,
-            flood_zone="X",        # You can make this dynamic later
-            wind_zone="Zone IV",   # Same here
-            fire_risk_score=3      # And here
-        )
-
-        st.markdown("### 🧾 FEMA-Style Insurance Estimate")
-        st.write(f"🌊 Flood Risk ({insurance['flood']}/yr)")
-        st.write(f"🌪 Wind Exposure ({insurance['wind']}/yr)")
-        st.write(f"🔥 Fire Risk ({insurance['fire']}/yr)")
-        st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
-    else:
-        st.warning("Please enter all required fields.")
 
 
 # -----------------------------
