@@ -83,42 +83,15 @@ def single_address_mode():
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
 
+    # FEMA inputs
+    flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"])
+    wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"])
+    fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5, value=3)
+
+    # Conditional FMV inputs
     sold_price = sold_year = None
-    lot_premium = builder_profit_pct = 0
+    lot_premium = builder_profit_pct = 0.0
 
-# Optional: Add dropdowns for FEMA inputs
-flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"])
-wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"])
-fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5, value=3)
-
-# Analyze button
-if st.button("Analyze"):
-    if address and sq_ft:
-        zip_code = extract_zip(address)
-        fmv, risk = calculate_fmv(
-            address, sq_ft, build_year, is_builder_origin,
-            fmv_method, community, cost_level,
-            sold_price, sold_year, lot_premium,
-            builder_profit_pct, apply_lot_and_profit
-        )
-        st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
-
-        insurance = estimate_fema_cost(
-            zip_code=zip_code,
-            home_value=fmv,
-            flood_zone=flood_zone,
-            wind_zone=wind_zone,
-            fire_risk_score=fire_risk_score
-        )
-
-        st.markdown("### 🧾 FEMA-Style Insurance Estimate")
-        st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
-        st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
-        st.write(f"🔥 Fire Risk (Score {fire_risk_score}): ${insurance['fire']}/yr")
-        st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
-    else:
-        st.warning("Please enter all required fields.")
-    
     if fmv_method == "Sold Price-Based Estimate":
         sold_price = st.number_input("Enter Most Recent Sold Price", min_value=50000)
         sold_year = st.selectbox("Sold Year", list(range(2015, 2026)))
@@ -128,23 +101,33 @@ if st.button("Analyze"):
 
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
-import re
+    # Analyze button
+    if st.button("Analyze"):
+        if address and sq_ft:
+            zip_code = extract_zip(address)
+            fmv, risk = calculate_fmv(
+                address, sq_ft, build_year, is_builder_origin,
+                fmv_method, community, cost_level,
+                sold_price, sold_year, lot_premium,
+                builder_profit_pct, apply_lot_and_profit
+            )
+            st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
 
-def extract_zip(address):
-    match = re.search(r"\b\d{5}\b", address)
-    return match.group(0) if match else None
- 
-if st.button("Analyze"):
-    if address and sq_ft:
-        zip_code = extract_zip(address)
-        fmv, risk = calculate_fmv(
-            address, sq_ft, build_year, is_builder_origin,
-            fmv_method, community, cost_level,
-            sold_price, sold_year, lot_premium,
-            builder_profit_pct, apply_lot_and_profit
-        )
-        st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
+            insurance = estimate_fema_cost(
+                zip_code=zip_code,
+                home_value=fmv,
+                flood_zone=flood_zone,
+                wind_zone=wind_zone,
+                fire_risk_score=fire_risk_score
+            )
 
+            st.markdown("### 🧾 FEMA-Style Insurance Estimate")
+            st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
+            st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
+            st.write(f"🔥 Fire Risk (Score {fire_risk_score}): ${insurance['fire']}/yr")
+            st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
+        else:
+            st.warning("Please enter all required fields.")
 
 # -----------------------------
 # Batch Upload Mode
