@@ -40,5 +40,3 @@ def zip_to_risk(zip_code):
         "wind_zone": wind_zone,
         "fire_risk_score": fire_score
     }
-
-
