@@ -109,6 +109,7 @@ def single_address_mode():
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
 
+    # Conditional FMV inputs
     sold_price = sold_year = None
     lot_premium = builder_profit_pct = 0.0
 
@@ -121,14 +122,17 @@ def single_address_mode():
 
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
+    # FEMA inputs
     flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"])
     wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"])
     fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5, value=3)
 
+    # ZIP extractor
     def extract_zip(address):
         match = re.search(r"\b\d{5}\b", address)
         return match.group(0) if match else None
 
+    # 🔘 Analyze Button
     if st.button("Analyze"):
         if address and sq_ft:
             zip_code = extract_zip(address)
@@ -155,6 +159,7 @@ def single_address_mode():
             st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
         else:
             st.warning("Please enter all required fields.")
+
 
 # -----------------------------
 # Batch Upload Mode
