@@ -1,12 +1,30 @@
-import os
 import pandas as pd
+import streamlit as st
 
-# Cache the scraped data once per session
+def scrape_risk_data():
+    # Replace with real scraping logic later
+    flood_df = pd.DataFrame({
+        "ZIP": ["34202", "34211", "34212"],
+        "FloodZone": ["AE", "X", "VE"]
+    })
+    wind_df = pd.DataFrame({
+        "ZIP": ["34202", "34211", "34212"],
+        "WindZone": ["Zone III", "Zone IV", "Zone II"]
+    })
+    fire_df = pd.DataFrame({
+        "ZIP": ["34202", "34211", "34212"],
+        "FireRiskScore": [3, 2, 4]
+    })
+    return flood_df, wind_df, fire_df
+
 @st.cache_data
 def get_risk_tables():
     return scrape_risk_data()
 
 def zip_to_risk(zip_code):
+    if not zip_code:
+        return {"flood_zone": "X", "wind_zone": "Zone III", "fire_risk_score": 3}
+
     flood_df, wind_df, fire_df = get_risk_tables()
 
     flood_match = flood_df.loc[flood_df["ZIP"] == zip_code, "FloodZone"]
