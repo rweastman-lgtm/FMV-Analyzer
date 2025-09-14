@@ -109,7 +109,6 @@ def single_address_mode():
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
 
-# Conditional FMV inputs
     sold_price = sold_year = None
     lot_premium = builder_profit_pct = 0.0
 
@@ -122,37 +121,39 @@ def single_address_mode():
 
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
-# FEMA inputs
-    risk_inputs = zip_to_risk(zip_code)
-
-    insurance = estimate_fema_cost(
-        zip_code=zip_code,
-        home_value=fmv,
-        flood_zone=risk_inputs["flood_zone"],
-        wind_zone=risk_inputs["wind_zone"],
-        fire_risk_score=risk_inputs["fire_risk_score"]
-)
-
-# ZIP extractor
     def extract_zip(address):
         match = re.search(r"\b\d{5}\b", address)
         return match.group(0) if match else None
 
-# 🔘 Analyze Button
-if st.button("Analyze"):
-    if address and sq_ft:
-        zip_code = extract_zip(address)
+    # 🔘 Analyze Button
+    if st.button("Analyze"):
+        if address and sq_ft:
+            zip_code = extract_zip(address)
+            risk_defaults = zip_to_risk(zip_code)
 
-        # Auto-populate FEMA inputs
-        risk_defaults = zip_to_risk(zip_code)
-        flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"], index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
-        wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"], index=["Zone II", "Zone III", "Zone IV"].index(risk_defaults["wind_zone"]))
-        fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5, value=risk_defaults["fire_risk_score"])
+            flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
+                                      index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
+            wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"],
+                                     index=["Zone II", "Zone III", "Zone IV"].index(risk_defaults["wind_zone"]))
+            fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5,
+                                        value=risk_defaults["fire_risk_score"])
 
-        fmv, risk = calculate_fmv(...)
-        insurance = estimate_fema_cost(zip_code, fmv, flood_zone, wind_zone, fire_risk_score)
-        # ... display results ...
+            fmv, risk = calculate_fmv(
+                address, sq_ft, build_year, is_builder_origin,
+                fmv_method, community, cost_level,
+                sold_price, sold_year, lot_premium,
+                builder_profit_pct, apply_lot_and_profit
+            )
 
+            insurance = estimate_fema_cost(
+                zip_code=zip_code,
+                home_value=fmv,
+                flood_zone=flood_zone,
+                wind_zone=wind_zone,
+                fire_risk_score=fire_risk_score
+            )
+
+            st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
             st.markdown("### 🧾 FEMA-Style Insurance Estimate")
             st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
             st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
