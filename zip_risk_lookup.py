@@ -22,8 +22,8 @@ def get_risk_tables():
     return scrape_risk_data()
 
 def zip_to_risk(zip_code):
-    if not zip_code:
-        return {"flood_zone": "X", "wind_zone": "Zone III", "fire_risk_score": 3}
+    flood_df, wind_df, fire_df = get_risk_tables()
+    # lookup logic...
 
     flood_df, wind_df, fire_df = get_risk_tables()
 
