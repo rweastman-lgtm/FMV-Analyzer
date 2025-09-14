@@ -3,7 +3,7 @@ import pandas as pd
 import datetime
 import re
 
-from zip_risk_lookup import zip_to_risk  # ← Add this line here
+from zip_risk_lookup import zip_to_risk
 
 def extract_zip(address):
     match = re.search(r"\b\d{5}\b", address)
