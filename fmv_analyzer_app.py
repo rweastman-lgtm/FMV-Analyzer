@@ -133,7 +133,11 @@ def single_address_mode():
                 st.warning("ZIP code not found in address.")
                 return
 
-            risk_defaults = zip_to_risk(zip_code)
+            try:
+                risk_defaults = zip_to_risk(zip_code)
+            except Exception as e:
+                st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
+                return
 
             flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
                                       index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
