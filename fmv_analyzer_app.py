@@ -163,6 +163,8 @@ def single_address_mode():
                 fire_risk_score=fire_risk_score
             )
 
+            print("✅ zip_to_risk is available:", callable(zip_to_risk))
+
             st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
             st.markdown("### 🧾 FEMA-Style Insurance Estimate")
             st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
