@@ -95,6 +95,12 @@ def single_address_mode():
 
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
+import re
+
+def extract_zip(address):
+    match = re.search(r"\b\d{5}\b", address)
+    return match.group(0) if match else None
+ 
     if st.button("Analyze"):
         if address and sq_ft:
             fmv, risk = calculate_fmv(address, sq_ft, build_year, is_builder_origin,
@@ -104,6 +110,26 @@ def single_address_mode():
             st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
         else:
             st.warning("Please enter all required fields.")
+
+# FEMA Insurance Cost Estimation
+if st.button("Analyze"):
+    if address and sq_ft:
+        zip_code = extract_zip(address)
+        fmv, risk = calculate_fmv(...)
+
+        insurance = estimate_fema_cost(
+            zip_code=zip_code,
+            home_value=fmv,
+            flood_zone="X",        # You can make this dynamic later
+            wind_zone="Zone IV",   # Same here
+            fire_risk_score=3      # And here
+        )
+
+        st.markdown("### 🧾 FEMA-Style Insurance Estimate")
+        st.write(f"🌊 Flood Risk ({insurance['flood']}/yr)")
+        st.write(f"🌪 Wind Exposure ({insurance['wind']}/yr)")
+        st.write(f"🔥 Fire Risk ({insurance['fire']}/yr)")
+        st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
 
 # -----------------------------
 # Batch Upload Mode
@@ -132,6 +158,42 @@ def batch_upload_mode():
         st.dataframe(result_df)
         csv = result_df.to_csv(index=False).encode("utf-8")
         st.download_button("Download Results as CSV", data=csv, file_name="fmv_results.csv", mime="text/csv")
+
+#------------------------------
+#FEMA Cost Calculator
+#------------------------------
+def estimate_fema_cost(zip_code, home_value, flood_zone, wind_zone, fire_risk_score):
+    def calculate_flood_premium(zone, value):
+        if zone == "X":
+            return 650
+        elif zone in ["AE", "VE"]:
+            return min(2500, value * 0.006)
+        else:
+            return 1200
+
+    def calculate_wind_premium(zone, value):
+        if zone == "Zone IV":
+            return min(1400, value * 0.004)
+        elif zone == "Zone III":
+            return 1000
+        else:
+            return 600
+
+    def calculate_fire_premium(score, value):
+        base = 300
+        multiplier = {1: 0.8, 2: 1.0, 3: 1.2, 4: 1.5, 5: 1.8}
+        return int(base * multiplier.get(score, 1.0))
+
+    flood = calculate_flood_premium(flood_zone, home_value)
+    wind = calculate_wind_premium(wind_zone, home_value)
+    fire = calculate_fire_premium(fire_risk_score, home_value)
+
+    return {
+        "flood": flood,
+        "wind": wind,
+        "fire": fire,
+        "total": flood + wind + fire
+    }
 
 # -----------------------------
 # Main App Layout
