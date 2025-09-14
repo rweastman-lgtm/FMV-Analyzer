@@ -1,22 +1,21 @@
 import os
 import pandas as pd
 
-def scrape_and_cache_risk_data():
-    os.makedirs("data", exist_ok=True)
-
-    # Replace this with real scraping logic later
-    flood_data = pd.DataFrame({
+def scrape_risk_data():
+    # Replace with real scraping logic later
+    flood_df = pd.DataFrame({
         "ZIP": ["34202", "34211", "34212"],
         "FloodZone": ["AE", "X", "VE"]
     })
-    wind_data = pd.DataFrame({
+    wind_df = pd.DataFrame({
         "ZIP": ["34202", "34211", "34212"],
         "WindZone": ["Zone III", "Zone IV", "Zone II"]
     })
-    fire_data = pd.DataFrame({
+    fire_df = pd.DataFrame({
         "ZIP": ["34202", "34211", "34212"],
         "FireRiskScore": [3, 2, 4]
     })
+    return flood_df, wind_df, fire_df
 
     flood_data.to_csv("data/fema_flood_zones_by_zip.csv", index=False)
     wind_data.to_csv("data/noaa_wind_zones_by_zip.csv", index=False)
