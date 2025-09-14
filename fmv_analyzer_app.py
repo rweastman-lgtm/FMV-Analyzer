@@ -3,6 +3,11 @@ import pandas as pd
 import datetime
 import re
 
+def extract_zip(address):
+    match = re.search(r"\b\d{5}\b", address)
+    return match.group(0) if match else None
+
+
 # -----------------------------
 # Real Builder Cost Table
 # -----------------------------
