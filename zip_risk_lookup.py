@@ -7,8 +7,10 @@ def load_risk_tables():
     return flood_df, wind_df, fire_df
 
 def zip_to_risk(zip_code):
-    flood_df, wind_df, fire_df = load_risk_tables()
+    if not zip_code:
+        return {"flood_zone": "X", "wind_zone": "Zone III", "fire_risk_score": 3}
 
+    flood_df, wind_df, fire_df = load_risk_tables()
     flood_match = flood_df.loc[flood_df["ZIP"] == zip_code, "FloodZone"]
     wind_match = wind_df.loc[wind_df["ZIP"] == zip_code, "WindZone"]
     fire_match = fire_df.loc[fire_df["ZIP"] == zip_code, "FireRiskScore"]
@@ -22,5 +24,6 @@ def zip_to_risk(zip_code):
         "wind_zone": wind_zone,
         "fire_risk_score": fire_score
     }
+
 
 
