@@ -26,4 +26,3 @@ def zip_to_risk(zip_code):
     }
 
 
-
