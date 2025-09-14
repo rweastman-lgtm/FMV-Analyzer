@@ -129,6 +129,10 @@ def single_address_mode():
     if st.button("Analyze"):
         if address and sq_ft:
             zip_code = extract_zip(address)
+            if not zip_code:
+                st.warning("ZIP code not found in address.")
+                return
+
             risk_defaults = zip_to_risk(zip_code)
 
             flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
