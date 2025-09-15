@@ -3,7 +3,7 @@ import pandas as pd
 import datetime
 import re
 
-from zip_risk_lookup import zip_to_risk, address_to_flood_zone
+from zip_risk_lookup import zip_to_risk, address_to_flood_zone_census
 
 def extract_zip(address):
     match = re.search(r"\b\d{5}\b", address)
@@ -136,17 +136,17 @@ def single_address_mode():
             if not zip_code:
                 st.warning("ZIP code not found in address.")
                 return
-         
-            try:
-                if use_exact_address and api_key:
-                    flood_zone = address_to_flood_zone(address, api_key)
-                    risk_defaults = zip_to_risk(zip_code)
-                    risk_defaults["flood_zone"] = flood_zone
-                else:
-                    risk_defaults = zip_to_risk(zip_code)
-            except Exception as e:
-                st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
-                return
+
+        try:
+            if use_exact_address:
+                flood_zone = address_to_flood_zone_census(address)
+                risk_defaults = zip_to_risk(zip_code)
+                risk_defaults["flood_zone"] = flood_zone
+            else:
+                risk_defaults = zip_to_risk(zip_code)
+        except Exception as e:
+            st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
+            return
 
             flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
                                       index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
