@@ -44,17 +44,25 @@ def zip_to_risk(zip_code):
 # -----------------------------
 # Parcel-Level Flood Zone Lookup
 # -----------------------------
-def address_to_flood_zone(address, geocode_api_key):
-    # Step 1: Geocode the address
-    geo_url = f"https://api.opencagedata.com/geocode/v1/json?q={address}&key={geocode_api_key}"
-    geo_resp = requests.get(geo_url)
+import requests
+
+def address_to_flood_zone_census(address):
+    # Step 1: Geocode using US Census
+    geo_url = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress"
+    geo_params = {
+        "address": address,
+        "benchmark": "Public_AR_Current",
+        "format": "json"
+    }
+    geo_resp = requests.get(geo_url, params=geo_params)
     geo_data = geo_resp.json()
 
-    if not geo_data["results"]:
+    try:
+        coords = geo_data["result"]["addressMatches"][0]["coordinates"]
+        lat = coords["y"]
+        lon = coords["x"]
+    except (IndexError, KeyError):
         raise ValueError("Geocoding failed for address.")
-
-    lat = geo_data["results"][0]["geometry"]["lat"]
-    lon = geo_data["results"][0]["geometry"]["lng"]
 
     # Step 2: Query FEMA NFHL for flood zone
     fema_url = "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query"
