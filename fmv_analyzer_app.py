@@ -129,26 +129,11 @@ def single_address_mode():
 
     if st.button("Analyze"):
         if address and sq_ft:
-        zip_code = extract_zip(address)
+            zip_code = extract_zip(address)
             if not zip_code:
                 st.warning("ZIP code not found in address.")
                 return
 
-            use_exact_address = st.checkbox("Use parcel-level flood zone (via geocoding)")
-            api_key = st.text_input("Enter OpenCage API Key", type="password") if use_exact_address else None
-
-            try:
-                if use_exact_address and api_key:
-                    flood_zone = address_to_flood_zone(address, api_key)
-                    risk_defaults = zip_to_risk(zip_code)
-                    risk_defaults["flood_zone"] = flood_zone
-                else:
-                    risk_defaults = zip_to_risk(zip_code)
-            except Exception as e:
-                st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
-                return
-
-            # 🔘 Toggle for parcel-level flood zone lookup
             use_exact_address = st.checkbox("Use parcel-level flood zone (via geocoding)")
             api_key = st.text_input("Enter OpenCage API Key", type="password") if use_exact_address else None
 
