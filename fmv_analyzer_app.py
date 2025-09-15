@@ -114,6 +114,9 @@ def single_address_mode():
     community = st.selectbox("Community", list(builder_cost_table.keys()))
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
+  
+    use_exact_address = st.checkbox("Use parcel-level flood zone (via geocoding)")
+    api_key = st.text_input("Enter OpenCage API Key", type="password") if use_exact_address else None
 
     sold_price = sold_year = None
     lot_premium = builder_profit_pct = 0.0
@@ -133,10 +136,7 @@ def single_address_mode():
             if not zip_code:
                 st.warning("ZIP code not found in address.")
                 return
-
-            use_exact_address = st.checkbox("Use parcel-level flood zone (via geocoding)")
-            api_key = st.text_input("Enter OpenCage API Key", type="password") if use_exact_address else None
-
+         
             try:
                 if use_exact_address and api_key:
                     flood_zone = address_to_flood_zone(address, api_key)
