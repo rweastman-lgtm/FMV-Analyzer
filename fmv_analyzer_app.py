@@ -174,9 +174,7 @@ def single_address_mode():
         st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
         st.write(f"🔥 Fire Risk (Score {fire_risk_score}): ${insurance['fire']}/yr")
         st.success(f"**Total Estimated Insurance: ${insurance['total']}/year**")
-        else:
-            st.warning("Please enter all required fields.")
-
+       
 # -----------------------------
 # Batch Upload Mode
 # -----------------------------
