@@ -135,9 +135,7 @@ def single_address_mode():
                 return
 
         try:
-            if use_exact_address:
-              flood_zone = address_to_flood_zone_free(address)
-
+            flood_zone = address_to_flood_zone_free(address)
         except Exception as e:
             st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
             return
