@@ -114,7 +114,7 @@ def single_address_mode():
     community = st.selectbox("Community", list(builder_cost_table.keys()))
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
-  
+
     sold_price = sold_year = None
     lot_premium = builder_profit_pct = 0.0
 
@@ -146,31 +146,30 @@ def single_address_mode():
             st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
             return
 
-            flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
-                                      index=["X", "AE", "VE"].index(risk_defaults["flood_zone"]))
-            wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"],
-                                     index=["Zone II", "Zone III", "Zone IV"].index(risk_defaults["wind_zone"]))
-            fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5,
-                                        value=risk_defaults["fire_risk_score"])
+        flood_zone = st.selectbox("Flood Zone", ["X", "AE", "VE"],
+                                  index=["X", "AE", "VE"].index(flood_zone))
+        wind_zone = st.selectbox("Wind Zone", ["Zone II", "Zone III", "Zone IV"],
+                                 index=["Zone II", "Zone III", "Zone IV"].index(wind_zone))
+        fire_risk_score = st.slider("Fire Risk Score (1–5)", min_value=1, max_value=5,
+                                    value=fire_risk_score)
 
-            fmv, risk = calculate_fmv(
-                address, sq_ft, build_year, is_builder_origin,
-                fmv_method, community, cost_level,
-                sold_price, sold_year, lot_premium,
-                builder_profit_pct, apply_lot_and_profit
-            )
+        fmv, risk = calculate_fmv(
+            address, sq_ft, build_year, is_builder_origin,
+            fmv_method, community, cost_level,
+            sold_price, sold_year, lot_premium,
+            builder_profit_pct, apply_lot_and_profit
+        )
 
-            insurance = estimate_fema_cost(
-                zip_code=zip_code,
-                home_value=fmv,
-                flood_zone=flood_zone,
-                wind_zone=wind_zone,
-                fire_risk_score=fire_risk_score
-            )
+        insurance = estimate_fema_cost(
+            zip_code=zip_code,
+            home_value=fmv,
+            flood_zone=flood_zone,
+            wind_zone=wind_zone,
+            fire_risk_score=fire_risk_score
+        )
 
-            print("✅ zip_to_risk is available:", callable(zip_to_risk))
+        st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
 
-            st.success(f"Corrected FMV: ${fmv:,.0f} {risk}")
             st.markdown("### 🧾 FEMA-Style Insurance Estimate")
             st.write(f"🌊 Flood Risk ({flood_zone}): ${insurance['flood']}/yr")
             st.write(f"🌪 Wind Exposure ({wind_zone}): ${insurance['wind']}/yr")
