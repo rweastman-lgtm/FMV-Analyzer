@@ -115,9 +115,6 @@ def single_address_mode():
     cost_level = st.radio("Cost Level", ["Lower", "Midpoint", "Upper"])
     fmv_method = st.radio("Choose FMV Method", ["Cost-Based Estimate", "Sold Price-Based Estimate"])
   
-    use_exact_address = st.checkbox("Use parcel-level flood zone (via geocoding)")
-    api_key = st.text_input("Enter OpenCage API Key", type="password") if use_exact_address else None
-
     sold_price = sold_year = None
     lot_premium = builder_profit_pct = 0.0
 
@@ -139,11 +136,8 @@ def single_address_mode():
 
         try:
             if use_exact_address:
-                flood_zone = address_to_flood_zone_free(address)
-                risk_defaults = zip_to_risk(zip_code)
-                risk_defaults["flood_zone"] = flood_zone
-            else:
-                risk_defaults = zip_to_risk(zip_code)
+              flood_zone = address_to_flood_zone_free(address)
+
         except Exception as e:
             st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
             return
