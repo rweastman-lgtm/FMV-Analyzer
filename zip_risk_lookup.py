@@ -44,8 +44,6 @@ def zip_to_risk(zip_code):
 # -----------------------------
 # Parcel-Level Flood Zone Lookup
 # -----------------------------
-import requests
-
 def address_to_flood_zone_census(address):
     # Step 1: Geocode using US Census
     geo_url = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress"
