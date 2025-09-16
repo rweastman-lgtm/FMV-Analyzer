@@ -139,7 +139,7 @@ def single_address_mode():
 
         try:
             if use_exact_address:
-                flood_zone = address_to_flood_zone_nfd(address, api_key)
+                flood_zone = address_to_flood_zone_free(address)
                 risk_defaults = zip_to_risk(zip_code)
                 risk_defaults["flood_zone"] = flood_zone
             else:
