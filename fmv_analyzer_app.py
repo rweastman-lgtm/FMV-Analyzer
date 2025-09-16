@@ -3,7 +3,7 @@ import pandas as pd
 import datetime
 import re
 
-from zip_risk_lookup import zip_to_risk, address_to_flood_zone_census
+from zip_risk_lookup import zip_to_risk, address_to_flood_zone_nfd
 
 def extract_zip(address):
     match = re.search(r"\b\d{5}\b", address)
@@ -139,7 +139,7 @@ def single_address_mode():
 
         try:
             if use_exact_address:
-                flood_zone = address_to_flood_zone_census(address)
+                flood_zone = address_to_flood_zone_nfd(address, api_key)
                 risk_defaults = zip_to_risk(zip_code)
                 risk_defaults["flood_zone"] = flood_zone
             else:
