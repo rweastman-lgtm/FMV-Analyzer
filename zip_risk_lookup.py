@@ -54,8 +54,15 @@ def address_to_flood_zone_census(address):
         "benchmark": "Public_AR_Current",
         "format": "json"
     }
+
     geo_resp = requests.get(geo_url, params=geo_params)
-    geo_data = geo_resp.json()
+    if geo_resp.status_code != 200:
+        raise ValueError(f"Census geocoder failed with status {geo_resp.status_code}")
+
+    try:
+        geo_data = geo_resp.json()
+    except ValueError:
+        raise ValueError("Census geocoder returned invalid JSON.")
 
     try:
         coords = geo_data["result"]["addressMatches"][0]["coordinates"]
@@ -77,7 +84,13 @@ def address_to_flood_zone_census(address):
     }
 
     fema_resp = requests.get(fema_url, params=fema_params)
-    fema_data = fema_resp.json()
+    if fema_resp.status_code != 200:
+        raise ValueError(f"FEMA NFHL query failed with status {fema_resp.status_code}")
+
+    try:
+        fema_data = fema_resp.json()
+    except ValueError:
+        raise ValueError("FEMA NFHL returned invalid JSON.")
 
     if "features" in fema_data and fema_data["features"]:
         flood_zone = fema_data["features"][0]["attributes"]["FLD_ZONE"]
