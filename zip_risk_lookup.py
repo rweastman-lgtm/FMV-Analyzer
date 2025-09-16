@@ -44,21 +44,49 @@ def zip_to_risk(zip_code):
 # -----------------------------
 # Parcel-Level Flood Zone Lookup
 # -----------------------------
+import requests
 
-def address_to_flood_zone_nfd(address, api_key):
-    url = "https://api.nationalflooddata.com/v3/flood-zone"
-    headers = {"X-API-KEY": "lwrhuFpefpCkMusBQIFC8X7yltzED9kkD3zgS2i0"}
-    payload = {"address": address}
+def address_to_flood_zone_free(address):
+    # Step 1: Geocode using US Census
+    geo_url = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress"
+    geo_params = {
+        "address": address,
+        "benchmark": "Public_AR_Current",
+        "format": "json"
+    }
 
-    resp = requests.post(url, json=payload, headers=headers)
-    if resp.status_code != 200:
-        raise ValueError(f"NFD API failed with status {resp.status_code}")
+    geo_resp = requests.get(geo_url, params=geo_params)
+    if geo_resp.status_code != 200:
+        raise ValueError(f"Census geocoder failed with status {geo_resp.status_code}")
 
     try:
-        data = resp.json()
-    except ValueError:
-        raise ValueError("NFD API returned invalid JSON.")
+        geo_data = geo_resp.json()
+        coords = geo_data["result"]["addressMatches"][0]["coordinates"]
+        lat = coords["y"]
+        lon = coords["x"]
+    except (IndexError, KeyError, ValueError):
+        raise ValueError("Geocoding failed for address.")
 
-    flood_zone = data.get("fld_zone", "X")  # Default fallback
+    # Step 2: Query FEMA NFHL
+    fema_url = "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query"
+    fema_params = {
+        "geometry": f"{lon},{lat}",
+        "geometryType": "esriGeometryPoint",
+        "inSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "FLD_ZONE",
+        "returnGeometry": "false",
+        "f": "json"
+    }
+
+    fema_resp = requests.get(fema_url, params=fema_params)
+    if fema_resp.status_code != 200:
+        raise ValueError(f"FEMA NFHL query failed with status {fema_resp.status_code}")
+
+    try:
+        fema_data = fema_resp.json()
+        flood_zone = fema_data["features"][0]["attributes"]["FLD_ZONE"]
+    except (IndexError, KeyError, ValueError):
+        flood_zone = "X"  # Default fallback
+
     return flood_zone
-
