@@ -128,16 +128,20 @@ def single_address_mode():
     apply_lot_and_profit = st.checkbox("Include Lot Premium and Builder Profit for apples-to-apples comparison")
 
     if st.button("Analyze"):
-        if address and sq_ft:
-            zip_code = extract_zip(address)
-            if not zip_code:
-                st.warning("ZIP code not found in address.")
-                return
+        if not address or not sq_ft:
+            st.warning("Please enter both address and square footage.")
+            return
+
+        zip_code = extract_zip(address)
+        if not zip_code:
+            st.warning("ZIP code not found in address.")
+            return
 
         try:
             risk_defaults = zip_to_risk(zip_code)
             flood_zone = risk_defaults["flood_zone"]
-
+            wind_zone = risk_defaults["wind_zone"]
+            fire_risk_score = risk_defaults["fire_risk_score"]
         except Exception as e:
             st.error(f"Risk lookup failed for ZIP {zip_code}: {e}")
             return
