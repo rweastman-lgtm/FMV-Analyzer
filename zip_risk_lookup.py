@@ -44,7 +44,6 @@ def zip_to_risk(zip_code):
 # -----------------------------
 # Parcel-Level Flood Zone Lookup
 # -----------------------------
-import requests
 
 def address_to_flood_zone_nfd(address, api_key):
     url = "https://api.nationalflooddata.com/v3/flood-zone"
